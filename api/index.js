@@ -70,6 +70,90 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// API endpoint xử lý tạo câu hỏi trắc nghiệm
+app.post('/api/generate-quiz', async (req, res) => {
+  try {
+    const { language, quantity, topic, difficulty, audience } = req.body;
+    
+    // Tạo prompt hoàn chỉnh phía backend, yêu cầu rõ ràng về định dạng
+    const prompt = `Bạn là một giáo viên ${language} với 10 năm kinh nghiệm. 
+    
+Nhiệm vụ: Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng) về chủ đề ${topic}, độ khó ${difficulty}, phù hợp với ${audience}.
+
+Yêu cầu:
+- Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
+- Không trùng lặp nội dung các câu
+- Phân bổ đồng đều cho các dạng (nếu có)
+
+QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ TỰ \`\`\`json HOẶC \`\`\`), theo đúng định dạng sau:
+
+{
+  "questions": [
+    {
+      "id": số thứ tự (1, 2, 3...),
+      "question": "nội dung câu hỏi",
+      "options": ["đáp án A", "đáp án B", "đáp án C", "đáp án D"],
+      "correct_answer": chỉ số của đáp án đúng (0-3, dạng số không phải chuỗi),
+      "explanation": "giải thích ngắn gọn"
+    }
+  ]
+}`;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    // Gọi API Gemini
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    
+    // Trích xuất phản hồi từ API Gemini
+    let aiResponse = '';
+    if (response.data?.candidates?.[0]?.content?.parts) {
+      aiResponse = response.data.candidates[0].content.parts[0].text;
+      
+      // Loại bỏ các ký tự markdown nếu có
+      aiResponse = aiResponse.replace(/```json|```/g, '').trim();
+      
+      // Cố gắng phân tích JSON từ phản hồi
+      try {
+        const jsonResponse = JSON.parse(aiResponse);
+        
+        // Đảm bảo correct_answer là số, không phải chuỗi
+        if (jsonResponse.questions) {
+          jsonResponse.questions.forEach(q => {
+            if (typeof q.correct_answer === 'string') {
+              q.correct_answer = parseInt(q.correct_answer);
+            }
+          });
+        }
+        
+        res.json(jsonResponse);
+      } catch (e) {
+        console.error('JSON parsing error:', e);
+        res.status(400).json({ 
+          error: 'Không thể xử lý dữ liệu từ AI', 
+          raw: aiResponse 
+        });
+      }
+    } else {
+      res.status(500).json({ error: 'Không nhận được phản hồi hợp lệ từ AI' });
+    }
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
+  }
+});
+
 app.use('/api', (req, res) => {
   res.json({ message: 'API đang được phát triển' });
 });
