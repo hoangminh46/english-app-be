@@ -63,6 +63,11 @@ app.post('/api/chat', async (req, res) => {
       aiResponse = response.data.candidates[0].content.parts[0].text;
     }
     
+    // Làm sạch chuỗi trước khi parse
+    aiResponse = aiResponse.trim();
+    // Xử lý các ký tự Unicode đặc biệt
+    aiResponse = aiResponse.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '');
+    
     res.json({ response: aiResponse });
   } catch (error) {
     console.error('Error:', error.response?.data || error.message);
@@ -78,14 +83,15 @@ app.post('/api/generate-quiz', async (req, res) => {
     // Tạo prompt hoàn chỉnh phía backend, yêu cầu rõ ràng về định dạng
     const prompt = `Bạn là một giáo viên ${language} với 10 năm kinh nghiệm. 
     
-Nhiệm vụ: Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng) về chủ đề ${topic}, độ khó ${difficulty}, phù hợp với ${audience}.
+Nhiệm vụ: Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng) bằng ${language} về chủ đề ${topic}, độ khó ${difficulty}, phù hợp với ${audience}.
 
 Yêu cầu:
 - Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
+- TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
 - Không trùng lặp nội dung các câu
 - Phân bổ đồng đều cho các dạng (nếu có)
 
-QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ TỰ \`\`\`json HOẶC \`\`\`), theo đúng định dạng sau:
+QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ TỰ \`\`\`json HOẶC \`\`\`), KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
 {
   "questions": [
@@ -123,6 +129,11 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ 
       
       // Loại bỏ các ký tự markdown nếu có
       aiResponse = aiResponse.replace(/```json|```/g, '').trim();
+      
+      // Làm sạch chuỗi trước khi parse
+      aiResponse = aiResponse.trim();
+      // Xử lý các ký tự Unicode đặc biệt
+      aiResponse = aiResponse.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '');
       
       // Cố gắng phân tích JSON từ phản hồi
       try {
