@@ -78,20 +78,27 @@ app.post('/api/chat', async (req, res) => {
 // API endpoint xử lý tạo câu hỏi trắc nghiệm
 app.post('/api/generate-quiz', async (req, res) => {
   try {
-    const { language, quantity, topic, difficulty, audience } = req.body;
+    const { language, quantity, mainTopic,subtopics, difficulty, audience,category } = req.body;
     
     // Tạo prompt hoàn chỉnh phía backend, yêu cầu rõ ràng về định dạng
-    const prompt = `Bạn là một giáo viên ${language} với 10 năm kinh nghiệm. 
-    
-Nhiệm vụ: Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng) bằng ${language} về chủ đề ${topic}, độ khó ${difficulty}, phù hợp với ${audience}.
+    const prompt = `Bạn là một giáo viên ${language} với 10 năm kinh nghiệm.
+
+Nhiệm vụ:
+- Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng)
+- Ngôn ngữ: ${language}
+- Phân loại: ${category}
+- Chủ đề chính: ${mainTopic}
+- Các chủ đề con: ${subtopics.join(', ')}
+- Độ khó: ${difficulty}
+- Đối tượng: ${audience}
 
 Yêu cầu:
 - Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
 - TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
 - Không trùng lặp nội dung các câu
-- Phân bổ đồng đều cho các dạng (nếu có)
+- Phân bổ đồng đều cho các chủ đề con đã cho
 
-QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ TỰ \`\`\`json HOẶC \`\`\`), KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
+QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
 {
   "questions": [
@@ -103,7 +110,11 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN (KHÔNG CÓ KÝ 
       "explanation": "giải thích ngắn gọn"
     }
   ]
-}`;
+}`.trim();
+
+// Thêm dòng này để kiểm tra prompt trước khi gửi đi
+console.log('Prompt length:', prompt.length);
+console.log('Prompt content:', prompt);
 
     const apiKey = process.env.GEMINI_API_KEY;
     
