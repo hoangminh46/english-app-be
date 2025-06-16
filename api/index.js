@@ -42,7 +42,7 @@ app.post('/api/chat', async (req, res) => {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 4096,
         }
       },
       {
@@ -126,7 +126,7 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
           temperature: 0.9,
           topK: 50,
           topP: 0.97,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4096,
         }
       },
       { headers: { 'Content-Type': 'application/json' } }
@@ -256,7 +256,7 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4096,
         }
       },
       { headers: { 'Content-Type': 'application/json' } }
