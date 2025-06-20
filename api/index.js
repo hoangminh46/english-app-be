@@ -299,6 +299,102 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
   }
 });
 
+app.post('/api/scramble', async (req, res) => {
+  try {
+    const { difficulty, quantity, topics } = req.body;
+    
+    // Helper function to get word length range based on difficulty
+    const getWordLengthRange = (diff) => {
+      switch(diff) {
+        case 'Cơ bản':
+          return '3-4';
+        case 'Trung bình':
+          return '5-6';
+        case 'Nâng cao':
+          return '7';
+        default:
+          return '3-7';
+      }
+    };
+
+    const wordLength = getWordLengthRange(difficulty);
+    
+    const prompt = `Bạn là một giáo viên ngôn ngữ chuyên thiết kế các trò chơi từ vựng sáng tạo.
+
+Nhiệm vụ:
+- Tạo ${quantity} câu đố sắp xếp chữ (word scramble)
+- Độ khó: ${difficulty} (${wordLength} chữ cái)
+- Chủ đề: ${topics.join(', ')}
+
+Yêu cầu:
+- Mỗi câu đố phải có:
+  + Từ gốc (word): từ tiếng Anh cần đoán
+  + Từ bị xáo trộn (scrambled): các chữ cái của từ gốc bị xáo trộn ngẫu nhiên
+  + Gợi ý (hint): gợi ý ngắn gọn bằng tiếng Việt để người chơi đoán từ
+  + Giải thích (explanation): giải thích ngắn gọn bằng tiếng Việt về nghĩa và cách dùng của từ
+- Các từ được chọn PHẢI phù hợp với chủ đề và độ khó đã cho
+- KHÔNG sử dụng các từ quá hiếm hoặc ít dùng
+- Các từ phải đa dạng về loại từ (danh từ, động từ, tính từ...)
+- Gợi ý phải đủ để người chơi có thể đoán được từ, nhưng không quá rõ ràng
+- Giải thích phải ngắn gọn và hữu ích cho việc học từ vựng
+
+QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
+
+{
+  "words": [
+    {
+      "id": số thứ tự (1, 2, 3...),
+      "word": "từ gốc cần đoán",
+      "scrambled": "từ đã bị xáo trộn chữ cái",
+      "hint": "gợi ý bằng tiếng Việt",
+      "explanation": "giải thích ngắn gọn bằng tiếng Việt"
+    }
+  ]
+}`.trim();
+    console.log(prompt);
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.8,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 4096,
+        }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    
+    let aiResponse = '';
+    if (response.data?.candidates?.[0]?.content?.parts) {
+      aiResponse = response.data.candidates[0].content.parts[0].text;
+      
+      aiResponse = aiResponse.replace(/```json|```/g, '').trim();
+      aiResponse = aiResponse.trim();
+      aiResponse = aiResponse.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '');
+      
+      try {
+        const jsonResponse = JSON.parse(aiResponse);
+        res.json(jsonResponse);
+      } catch (e) {
+        console.error('JSON parsing error:', e);
+        res.status(400).json({ 
+          error: 'Không thể xử lý dữ liệu từ AI', 
+          raw: aiResponse 
+        });
+      }
+    } else {
+      res.status(500).json({ error: 'Không nhận được phản hồi hợp lệ từ AI' });
+    }
+  } catch (error) {
+    console.error('Error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
+  }
+});
+
 app.use('/api', (req, res) => {
   res.json({ message: 'API đang được phát triển' });
 });
