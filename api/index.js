@@ -303,11 +303,27 @@ app.post('/api/scramble', async (req, res) => {
   try {
     const { difficulty, quantity, topics } = req.body;
     
+    // Helper function to get word length range based on difficulty
+    const getWordLengthRange = (diff) => {
+      switch(diff) {
+        case 'Cơ bản':
+          return '3-4';
+        case 'Trung bình':
+          return '5-6';
+        case 'Nâng cao':
+          return '7';
+        default:
+          return '3-7';
+      }
+    };
+
+    const wordLength = getWordLengthRange(difficulty);
+    
     const prompt = `Bạn là một giáo viên ngôn ngữ chuyên thiết kế các trò chơi từ vựng sáng tạo.
 
 Nhiệm vụ:
 - Tạo ${quantity} câu đố sắp xếp chữ (word scramble)
-- Độ khó: ${difficulty} (Cơ bản: 3-4 chữ cái, Trung bình: 5-7 chữ cái, Nâng cao: 8+ chữ cái)
+- Độ khó: ${difficulty} (${wordLength} chữ cái)
 - Chủ đề: ${topics.join(', ')}
 
 Yêu cầu:
