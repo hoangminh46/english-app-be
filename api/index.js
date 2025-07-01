@@ -101,6 +101,10 @@ Yêu cầu:
 - Tránh sử dụng các cấu trúc câu hỏi lặp lại
 - Đảm bảo mỗi câu hỏi độc lập và không liên quan đến nhau
 - Sử dụng các ví dụ và tình huống thực tế khác nhau
+- Với mỗi câu hỏi, trích xuất các từ mới CHỈ từ nội dung câu hỏi (KHÔNG lấy từ các đáp án), bao gồm:
+  + Từ vựng quan trọng hoặc khó
+  + Cụm từ thông dụng
+  + Thuật ngữ chuyên ngành (nếu có)
 
 QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
@@ -111,7 +115,14 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
       "question": "nội dung câu hỏi",
       "options": ["đáp án A", "đáp án B", "đáp án C", "đáp án D"],
       "correct_answer": chỉ số của đáp án đúng (0-3, dạng số không phải chuỗi),
-      "explanation": "giải thích ngắn gọn"
+      "explanation": "giải thích ngắn gọn",
+      "new_words": [
+        {
+          "word": "từ hoặc cụm từ mới",
+          "pronunciation": "phiên âm",
+          "meaning": "nghĩa tiếng Việt"
+        }
+      ]
     }
   ]
 }`.trim();
@@ -231,6 +242,10 @@ Yêu cầu:
 - TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
 - Câu hỏi phải đa dạng và thực tế, không trùng lặp nội dung các câu
 - Tập trung vào kiến thức thường dùng trong giao tiếp hàng ngày
+- Với mỗi câu hỏi, trích xuất các từ mới CHỈ từ nội dung câu hỏi (KHÔNG lấy từ các đáp án), bao gồm:
+  + Từ vựng quan trọng hoặc khó
+  + Cụm từ thông dụng
+  + Thuật ngữ chuyên ngành (nếu có)
 
 QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
@@ -241,7 +256,14 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
       "question": "nội dung câu hỏi",
       "options": ["đáp án A", "đáp án B", "đáp án C", "đáp án D"],
       "correct_answer": chỉ số của đáp án đúng (0-3, dạng số không phải chuỗi),
-      "explanation": "giải thích ngắn gọn"
+      "explanation": "giải thích ngắn gọn",
+      "new_words": [
+        {
+          "word": "từ hoặc cụm từ mới",
+          "pronunciation": "phiên âm",
+          "meaning": "nghĩa tiếng Việt"
+        }
+      ]
     }
   ]
 }`.trim();
@@ -307,50 +329,101 @@ app.post('/api/scramble', async (req, res) => {
     const getWordLengthRange = (diff) => {
       switch(diff) {
         case 'Cơ bản':
-          return '3-4';
+          return {min: 3, max: 5};
         case 'Trung bình':
-          return '5-6';
+          return {min: 5, max: 7};
         case 'Nâng cao':
-          return '7';
+          return {min: 7, max: 9};
         default:
-          return '3-7';
+          return {min: 3, max: 9};
       }
     };
 
-    const wordLength = getWordLengthRange(difficulty);
+    const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    const perspectives = [
+      'giáo viên ngôn ngữ',
+      'chuyên gia từ vựng',
+      'nhà thiết kế trò chơi giáo dục',
+      'giảng viên đại học ngành ngôn ngữ',
+      'chuyên gia phát triển ứng dụng học ngôn ngữ'
+    ];
+
+    const approaches = [
+      'tiếp cận theo tình huống thực tế',
+      'tiếp cận theo ngữ cảnh giao tiếp',
+      'tiếp cận theo chức năng ngôn ngữ',
+      'tiếp cận theo kỹ năng sử dụng'
+    ];
+
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 1000);
+
+    const wordLengthRange = getWordLengthRange(difficulty);
     
-    const prompt = `Bạn là một giáo viên ngôn ngữ chuyên thiết kế các trò chơi từ vựng sáng tạo.
+    const prompt = `Bạn là một ${getRandomElement(perspectives)} 15 năm kinh nghiệm với phương pháp ${getRandomElement(approaches)} . Seed: ${randomSeed}-${timestamp}
+    Nhiệm vụ:
+    - Tạo ${quantity} câu đố sắp xếp chữ (word scramble)
+    - Độ khó: ${difficulty}
+    - Chủ đề: ${topics.join(', ')}
+    - Thứ tự câu đố được sắp xếp NGẪU NHIÊN
 
-Nhiệm vụ:
-- Tạo ${quantity} câu đố sắp xếp chữ (word scramble)
-- Độ khó: ${difficulty} (${wordLength} chữ cái)
-- Chủ đề: ${topics.join(', ')}
-
-Yêu cầu:
-- Mỗi câu đố phải có:
-  + Từ gốc (word): từ tiếng Anh cần đoán
-  + Từ bị xáo trộn (scrambled): các chữ cái của từ gốc bị xáo trộn ngẫu nhiên
-  + Gợi ý (hint): gợi ý ngắn gọn bằng tiếng Việt để người chơi đoán từ
-  + Giải thích (explanation): giải thích ngắn gọn bằng tiếng Việt về nghĩa và cách dùng của từ
-- Các từ được chọn PHẢI phù hợp với chủ đề và độ khó đã cho
-- KHÔNG sử dụng các từ quá hiếm hoặc ít dùng
-- Các từ phải đa dạng về loại từ (danh từ, động từ, tính từ...)
-- Gợi ý phải đủ để người chơi có thể đoán được từ, nhưng không quá rõ ràng
-- Giải thích phải ngắn gọn và hữu ích cho việc học từ vựng
-
-QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
-
-{
-  "words": [
+    Ràng buộc độ dài từ:
+   - TUYỆT ĐỐI CHỈ chọn từ có độ dài từ ${wordLengthRange.min} đến ${wordLengthRange.max} chữ cái
+   - KHÔNG được chọn từ ngắn hơn ${wordLengthRange.min} hoặc dài hơn ${wordLengthRange.max} chữ cái
+   - Độ dài được tính cho cả từ ghép (compound words)
+    
+    Yêu cầu về từ vựng:
+    - Ưu tiên chọn từ có tính ứng dụng cao trong giao tiếp thực tế
+    - Mỗi từ PHẢI thuộc một trong các dạng sau (phân bổ đều):
+      + Từ đơn (single words)
+      + Cụm từ thông dụng (common phrases)
+      + Từ ghép (compound words)
+      + Từ có tiền tố/hậu tố (words with prefixes/suffixes)
+    - Đảm bảo cân bằng giữa các loại từ:
+      + 30% danh từ (nouns)
+      + 30% động từ (verbs)
+      + 20% tính từ (adjectives)
+      + 20% trạng từ/từ khác (adverbs/others)
+    
+    Yêu cầu về nội dung:
+    - Mỗi câu đố phải có:
+      + Từ gốc (word): từ tiếng Anh cần đoán
+      + Từ bị xáo trộn (scrambled): các chữ cái xáo trộn theo quy tắc:
+        * Không để 2 chữ cái liền kề trong từ gốc đứng cạnh nhau
+        * Đảm bảo ít nhất 70% vị trí chữ cái khác với từ gốc
+      + Gợi ý (hint): gợi ý bằng tiếng Việt theo một trong các dạng:
+        * Định nghĩa ngắn gọn
+        * Tình huống sử dụng
+        * Từ đồng nghĩa/trái nghĩa
+        * Ví dụ thực tế
+      + Giải thích (explanation): bao gồm:
+        * Nghĩa tiếng Việt
+        * Cách phát âm đơn giản
+        * Ví dụ câu ngắn
+        * Các cụm từ thông dụng (nếu có)
+    
+    Yêu cầu về độ khó:
+    - Cơ bản: Từ thông dụng và phổ biến
+    - Trung bình: Từ có tần suất sử dụng vừa phải, có thể gặp trong giao tiếp hàng ngày
+    - Nâng cao: Từ chuyên ngành hoặc học thuật, nhưng vẫn đảm bảo tính thực tế
+    
+    QUAN TRỌNG: 
+    - CÁC TỪ PHẢI ĐƯỢC VIẾT HOA HOÀN TOÀN
+    - MỖI REQUEST PHẢI TẠO NỘI DUNG HOÀN TOÀN MỚI
+    - CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
+    
     {
-      "id": số thứ tự (1, 2, 3...),
-      "word": "từ gốc cần đoán",
-      "scrambled": "từ đã bị xáo trộn chữ cái",
-      "hint": "gợi ý bằng tiếng Việt",
-      "explanation": "giải thích ngắn gọn bằng tiếng Việt"
-    }
-  ]
-}`.trim();
+      "words": [
+        {
+          "id": số thứ tự (1, 2, 3...),
+          "word": "từ gốc cần đoán",
+          "scrambled": "từ đã bị xáo trộn chữ cái",
+          "hint": "gợi ý bằng tiếng Việt",
+          "explanation": "giải thích ngắn gọn bằng tiếng Việt"
+        }
+      ]
+    }`.trim();
     console.log(prompt);
     const apiKey = process.env.GEMINI_API_KEY;
     
