@@ -39,10 +39,10 @@ app.post('/api/chat', async (req, res) => {
           }
         ],
         generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096,
+          temperature: 0.9,
+          topK: 50,
+          topP: 0.97,
+          maxOutputTokens: 8192,
         }
       },
       {
@@ -90,21 +90,33 @@ Nhiệm vụ:
 - Độ khó: ${difficulty}
 - Đối tượng: ${audience}
 
-Yêu cầu:
+YÊU CẦU CHUNG:
 - Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
 - TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
 - TUYỆT ĐỐI KHÔNG trùng lặp nội dung giữa các câu hỏi
 - Thứ tự câu hỏi được sắp xếp ngẫu nhiên
-- Mỗi câu hỏi PHẢI có cách tiếp cận và góc nhìn khác nhau
-- Sử dụng nhiều dạng câu hỏi khác nhau (điền từ, tình huống, đồng nghĩa/trái nghĩa, ngữ cảnh, v.v.)
+- Mỗi câu hỏi PHẢI có cách tiếp cận và góc nhìn KHÁC NHAU
+- KHÔNG được sử dụng cùng một cấu trúc câu hỏi quá 2 lần
+- Sử dụng nhiều dạng câu hỏi KHÁC NHAU (điền từ, tình huống, đồng nghĩa/trái nghĩa, ngữ cảnh, v.v.)
 - Phân bổ đồng đều và đa dạng cho các chủ đề con đã cho
 - Tránh sử dụng các cấu trúc câu hỏi lặp lại
 - Đảm bảo mỗi câu hỏi độc lập và không liên quan đến nhau
-- Sử dụng các ví dụ và tình huống thực tế khác nhau
+- Sử dụng các ví dụ và tình huống thực tế KHÁC NHAU
 - Với mỗi câu hỏi, trích xuất các từ mới CHỈ từ nội dung câu hỏi (KHÔNG lấy từ các đáp án), bao gồm:
   + Từ vựng quan trọng hoặc khó
   + Cụm từ thông dụng
   + Thuật ngữ chuyên ngành (nếu có)
+
+YÊU CẦU BẮT BUỘC: 
+   - Mỗi câu hỏi PHẢI được kiểm tra ngữ pháp và logic trước khi xuất
+   - Đảm bảo không có câu hỏi mơ hồ/nhiều nghĩa
+   - Với câu điền khuyết: Xác định rõ chủ ngữ có thể thực hiện hành động không
+   
+TIÊU CHÍ NGỮ PHÁP:
+   - Danh từ vô tri + động từ → bắt buộc dùng bị động
+   - Thì động từ phải khớp với trạng từ thời gian
+   - Động từ khuyết thiếu phải phù hợp với chủ ngữ
+
 
 QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
@@ -137,7 +149,7 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
           temperature: 0.9,
           topK: 50,
           topP: 0.97,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192,
         }
       },
       { headers: { 'Content-Type': 'application/json' } }
@@ -235,7 +247,7 @@ Nhiệm vụ:
   + ${distribution.grammar} câu về ngữ pháp thực tế
   + ${distribution.communication} câu về cách diễn đạt và giao tiếp
 
-Yêu cầu:
+YÊU CẦU CHUNG:
 - Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
 - Các câu hỏi PHẢI đa dạng về hình thức
 - Thứ tự câu hỏi được sắp xếp ngẫu nhiên, không theo phân bổ đã cho
@@ -246,6 +258,18 @@ Yêu cầu:
   + Từ vựng quan trọng hoặc khó
   + Cụm từ thông dụng
   + Thuật ngữ chuyên ngành (nếu có)
+
+YÊU CẦU BẮT BUỘC: 
+   - Mỗi câu hỏi PHẢI được kiểm tra ngữ pháp và logic trước khi xuất
+   - Đảm bảo không có câu hỏi mơ hồ/nhiều nghĩa
+   - Với câu điền khuyết: Xác định rõ chủ ngữ có thể thực hiện hành động không
+   
+TIÊU CHÍ NGỮ PHÁP:
+   - Danh từ vô tri + động từ → bắt buộc dùng bị động
+   - Thì động từ phải khớp với trạng từ thời gian
+   - Động từ khuyết thiếu phải phù hợp với chủ ngữ
+
+
 
 QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
 
@@ -275,10 +299,10 @@ QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ 
       {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 4096,
+          temperature: 0.9,
+          topK: 50,
+          topP: 0.97,
+          maxOutputTokens: 8192,
         }
       },
       { headers: { 'Content-Type': 'application/json' } }
@@ -432,9 +456,9 @@ app.post('/api/scramble', async (req, res) => {
       {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.8,
-          topK: 40,
-          topP: 0.95,
+          temperature: 0.9,
+          topK: 50,
+          topP: 0.97,
           maxOutputTokens: 4096,
         }
       },
