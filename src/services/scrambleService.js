@@ -9,92 +9,119 @@ class ScrambleService {
     return await this.callGeminiAPI(prompt);
   }
 
-  buildScramblePrompt(difficulty, quantity, topics) {
+  buildScramblePrompt(difficulty, quantity, topics = []) {
     const wordLengthRange = this.getWordLengthRange(difficulty);
+  
     const perspectives = [
-      'giáo viên ngôn ngữ',
-      'chuyên gia từ vựng',
-      'nhà thiết kế trò chơi giáo dục',
-      'giảng viên đại học ngành ngôn ngữ',
-      'chuyên gia phát triển ứng dụng học ngôn ngữ'
+      'language teacher',
+      'vocabulary expert',
+      'educational game designer',
+      'university linguistics lecturer',
+      'language learning app developer'
     ];
-
+  
     const approaches = [
-      'tiếp cận theo tình huống thực tế',
-      'tiếp cận theo ngữ cảnh giao tiếp',
-      'tiếp cận theo chức năng ngôn ngữ',
-      'tiếp cận theo kỹ năng sử dụng'
+      'real-world scenario-based learning',
+      'contextual communication approach',
+      'functional language approach',
+      'skill-oriented teaching method'
     ];
-
+  
     const timestamp = Date.now();
     const randomSeed = Math.floor(Math.random() * 1000);
     const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)];
     const randomApproach = approaches[Math.floor(Math.random() * approaches.length)];
-
-    return `Bạn là một ${randomPerspective} 15 năm kinh nghiệm với phương pháp ${randomApproach} . Seed: ${randomSeed}-${timestamp}
-    Nhiệm vụ:
-    - Tạo ${quantity} câu đố sắp xếp chữ (word scramble)
-    - Độ khó: ${difficulty}
-    - Chủ đề: ${topics.join(', ')}
-    - Thứ tự câu đố được sắp xếp NGẪU NHIÊN
-
-    Ràng buộc độ dài từ:
-   - TUYỆT ĐỐI CHỈ chọn từ có độ dài từ ${wordLengthRange.min} đến ${wordLengthRange.max} chữ cái
-   - KHÔNG được chọn từ ngắn hơn ${wordLengthRange.min} hoặc dài hơn ${wordLengthRange.max} chữ cái
-   - Độ dài được tính cho cả từ ghép (compound words)
-    
-    Yêu cầu về từ vựng:
-    - Ưu tiên chọn từ có tính ứng dụng cao trong giao tiếp thực tế
-    - Mỗi từ PHẢI thuộc một trong các dạng sau (phân bổ đều):
-      + Từ đơn (single words)
-      + Cụm từ thông dụng (common phrases)
-      + Từ ghép (compound words)
-      + Từ có tiền tố/hậu tố (words with prefixes/suffixes)
-    - Đảm bảo cân bằng giữa các loại từ:
-      + 30% danh từ (nouns)
-      + 30% động từ (verbs)
-      + 20% tính từ (adjectives)
-      + 20% trạng từ/từ khác (adverbs/others)
-    
-    Yêu cầu về nội dung:
-    - Mỗi câu đố phải có:
-      + Từ gốc (word): từ tiếng Anh cần đoán
-      + Từ bị xáo trộn (scrambled): các chữ cái xáo trộn theo quy tắc:
-        * Không để 2 chữ cái liền kề trong từ gốc đứng cạnh nhau
-        * Đảm bảo ít nhất 70% vị trí chữ cái khác với từ gốc
-      + Gợi ý (hint): gợi ý bằng tiếng Việt theo một trong các dạng:
-        * Định nghĩa ngắn gọn
-        * Tình huống sử dụng
-        * Từ đồng nghĩa/trái nghĩa
-        * Ví dụ thực tế
-      + Giải thích (explanation): bao gồm:
-        * Nghĩa tiếng Việt
-        * Cách phát âm đơn giản
-        * Ví dụ câu ngắn
-        * Các cụm từ thông dụng (nếu có)
-    
-    Yêu cầu về độ khó:
-    - Cơ bản: Từ thông dụng và phổ biến
-    - Trung bình: Từ có tần suất sử dụng vừa phải, có thể gặp trong giao tiếp hàng ngày
-    - Nâng cao: Từ chuyên ngành hoặc học thuật, nhưng vẫn đảm bảo tính thực tế
-    
-    QUAN TRỌNG: 
-    - CÁC TỪ PHẢI ĐƯỢC VIẾT HOA HOÀN TOÀN
-    - MỖI REQUEST PHẢI TẠO NỘI DUNG HOÀN TOÀN MỚI
-    - CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
-    
-    {
-      "words": [
-        {
-          "id": số thứ tự (1, 2, 3...),
-          "word": "từ gốc cần đoán",
-          "scrambled": "từ đã bị xáo trộn chữ cái",
-          "hint": "gợi ý bằng tiếng Việt",
-          "explanation": "giải thích ngắn gọn bằng tiếng Việt"
+    const topicList = topics.length ? topics.join(', ') : 'random English vocabulary';
+  
+    return `
+  You are an experienced ${randomPerspective} with 15 years of expertise applying the ${randomApproach} method.
+  Seed: ${randomSeed}-${timestamp}
+  
+  TASK:
+  Generate ${quantity} English **word scramble puzzles** (single words or short phrases).
+  
+  CONTEXT:
+  - Difficulty: ${difficulty}
+  - Topics: ${topicList}
+  - Randomized order (no predictable sequence)
+  
+  WORD LENGTH RULES:
+  1. Include only words or phrases between ${wordLengthRange.min} and ${wordLengthRange.max} letters long.
+  2. Exclude any word outside this range (including compound words if total length mismatches).
+  
+  VOCABULARY SELECTION:
+  1. Focus on practical, real-life vocabulary.
+  2. Include a balanced mix of:
+     - Single words
+     - Common phrases
+     - Compound words
+     - Words with prefixes or suffixes
+  3. Maintain part-of-speech balance:
+     - 30% nouns
+     - 30% verbs
+     - 20% adjectives
+     - 20% adverbs or others
+  
+  SCRAMBLING RULES:
+  1. Rearrange letters so that:
+     - No two adjacent letters from the original remain together.
+     - At least 70% of letter positions differ from the original.
+  2. Ensure the scrambled result is solvable and not nonsensical.
+  3. All words must be UPPERCASE (e.g., "COMMUNICATION").
+  
+  CONTENT STRUCTURE:
+  Each puzzle must include:
+  - **word**: original word or phrase (uppercase)
+  - **scrambled**: shuffled version following the above rules
+  - **hint** (Vietnamese): one of the following types —
+    - Short definition
+    - Usage situation
+    - Synonym or antonym
+    - Real-life example
+  - **explanation** (object with separate fields):
+    - **meaning** (Vietnamese): meaning of the word
+    - **pronunciation** (IPA): IPA pronunciation in format "/.../"
+    - **partOfSpeech** (Vietnamese): part of speech (danh từ, động từ, tính từ, etc.)
+    - **example** (English): short example sentence in English
+    - **exampleTranslation** (Vietnamese): Vietnamese translation of the example sentence
+  
+  DIFFICULTY LEVELS:
+  - Basic → very common everyday words
+  - Intermediate → moderately frequent words or expressions
+  - Advanced → specialized or academic terms still useful in practice
+  
+  OUTPUT FORMAT:
+  Return **pure JSON only**, no markdown, comments, or special characters.
+  Use the following structure:
+  
+  {
+    "words": [
+      {
+        "id": 1,
+        "word": "ORIGINAL WORD",
+        "scrambled": "SCRAMBLED VERSION",
+        "hint": "Vietnamese hint",
+        "explanation": {
+          "meaning": "Meaning in Vietnamese",
+          "pronunciation": "/IPA pronunciation/",
+          "partOfSpeech": "danh từ/động từ/tính từ",
+          "example": "Short example sentence in English",
+          "exampleTranslation": "Vietnamese translation of the example"
         }
-      ]
-    }`.trim();
+      }
+    ]
   }
+  
+  VALIDATION:
+  - Each entry must meet all word length and category rules.
+  - No duplicates or repeated scrambles.
+  - Grammar, logic, and meaning must be correct and contextually valid.
+  - All hints and explanation fields (meaning, partOfSpeech, exampleTranslation) must be natural, short, and in Vietnamese.
+  - Example sentences must be in natural English and grammatically correct.
+  - Example translations must accurately reflect the meaning of the English example.
+    `.trim();
+  }
+  
 
   getWordLengthRange(difficulty) {
     switch(difficulty) {
