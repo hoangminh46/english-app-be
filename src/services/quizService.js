@@ -52,120 +52,164 @@ class QuizService {
   buildCustomQuizPrompt(params) {
     const { language, quantity, mainTopic, subtopics, difficulty, audience, category } = params;
     
-    return `Bạn là một giáo viên ${language} với 10 năm kinh nghiệm.
+    return `You are an expert ${language} teacher with 10 years of experience creating professional multiple-choice questions.
 
-Nhiệm vụ:
-- Tạo ${quantity} câu hỏi trắc nghiệm 4 đáp án (1 đúng)
-- Ngôn ngữ: ${language}
-- Phân loại: ${category}
-- Chủ đề chính: ${mainTopic}
-- Các chủ đề con: ${subtopics.join(', ')}
-- Độ khó: ${difficulty}
-- Đối tượng: ${audience}
+TASK:
+Generate ${quantity} multiple-choice questions (4 options each, 1 correct answer).
 
-YÊU CẦU CHUNG:
-- Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
-- TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
-- TUYỆT ĐỐI KHÔNG trùng lặp nội dung giữa các câu hỏi
-- Thứ tự câu hỏi được sắp xếp ngẫu nhiên
-- Mỗi câu hỏi PHẢI có cách tiếp cận và góc nhìn KHÁC NHAU
-- KHÔNG được sử dụng cùng một cấu trúc câu hỏi quá 2 lần
-- Sử dụng nhiều dạng câu hỏi KHÁC NHAU (điền từ, tình huống, đồng nghĩa/trái nghĩa, ngữ cảnh, v.v.)
-- Phân bổ đồng đều và đa dạng cho các chủ đề con đã cho
-- Tránh sử dụng các cấu trúc câu hỏi lặp lại
-- Đảm bảo mỗi câu hỏi độc lập và không liên quan đến nhau
-- Sử dụng các ví dụ và tình huống thực tế KHÁC NHAU
-- Với mỗi câu hỏi, trích xuất các từ mới CHỈ từ nội dung câu hỏi (KHÔNG lấy từ các đáp án), bao gồm:
-  + Từ vựng quan trọng hoặc khó
-  + Cụm từ thông dụng
-  + Thuật ngữ chuyên ngành (nếu có)
+CONTEXT SETTINGS:
+- Language: ${language}
+- Category: ${category}
+- Main topic: ${mainTopic}
+- Subtopics: ${subtopics.join(', ')}
+- Difficulty: ${difficulty}
+- Target audience: ${audience}
 
-YÊU CẦU BẮT BUỘC: 
-   - Mỗi câu hỏi PHẢI được kiểm tra ngữ pháp và logic trước khi xuất
-   - Đảm bảo không có câu hỏi mơ hồ/nhiều nghĩa
-   - Với câu điền khuyết: Xác định rõ chủ ngữ có thể thực hiện hành động không
-   
-TIÊU CHÍ NGỮ PHÁP:
-   - Danh từ vô tri + động từ → bắt buộc dùng bị động
-   - Thì động từ phải khớp với trạng từ thời gian
-   - Động từ khuyết thiếu phải phù hợp với chủ ngữ
+REQUIREMENTS:
+1. Each question must be grammatically correct, unambiguous, and logically sound.
+2. Use diverse question types (fill-in-the-blank, situational, synonym/antonym, grammar, collocation, context-based, etc.).
+3. Ensure **no repetition** of question structure, examples, or content.
+4. Randomize question order and vary the phrasing and focus of each question.
+5. Include real-life or practical contexts whenever possible.
 
-QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
+EXPLANATION RULES:
+- The explanation must **always** be in Vietnamese.
+- The explanation should be structured and include:
+  1. **Why the correct answer is right**: Clear reasoning with specific grammar/vocabulary rules or contextual logic
+  2. **Why other options are wrong** (when applicable): Brief explanation of common mistakes or misconceptions
+  3. **Related rule or concept**: Relevant grammar rule, collocation, or usage pattern
+  4. **Practical note**: How to apply this in real-life communication (if relevant)
+- Keep explanations **concise (80-120 words)**, clear, and educational.
+- Focus on helping learners understand the concept, not just memorize the answer.
+- Use examples from the question context when explaining.
+
+NEW WORDS:
+- Extract **3–5 new or useful words or phrases** from the *question text only* (not from the options).
+- Prioritize diversity: include a mix of **vocabulary types** (verbs, adjectives, idioms, collocations, or topic-related terms).
+- For each word or phrase, include:
+  - Accurate **phonetic transcription** (IPA preferred)
+  - **Meaning in Vietnamese** (clear and natural)
+- Choose words that are:
+  - Commonly used in real-life English
+  - Relevant to the topic or context of the question
+  - Useful for learners’ vocabulary building
+
+GRAMMAR CHECKLIST:
+- Inanimate subject + verb → use passive voice.
+- Verb tense must match time expressions.
+- Modal verbs must agree with the subject.
+- Ensure subject-verb agreement and logical consistency.
+
+OUTPUT FORMAT:
+Return **pure JSON only** (no markdown, no explanations, no additional text).
 
 {
   "questions": [
     {
-      "id": số thứ tự (1, 2, 3...),
-      "question": "nội dung câu hỏi",
-      "options": ["đáp án A", "đáp án B", "đáp án C", "đáp án D"],
-      "correct_answer": chỉ số của đáp án đúng (0-3, dạng số không phải chuỗi),
-      "explanation": "giải thích ngắn gọn",
+      "id": 1,
+      "question": "Question text",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": 0,
+      "explanation": "Detailed explanation in Vietnamese covering why the answer is correct, why other options are wrong, related rules/concepts, and practical usage notes",
       "new_words": [
         {
-          "word": "từ hoặc cụm từ mới",
-          "pronunciation": "phiên âm",
-          "meaning": "nghĩa tiếng Việt"
+          "word": "new or key term",
+          "pronunciation": "phonetic transcription",
+          "meaning": "Vietnamese meaning"
         }
       ]
     }
   ]
-}`.trim();
+}
+
+IMPORTANT:
+- Only output valid JSON (UTF-8, no markdown or quotes escaping).
+- Every question must pass grammar and logic validation before output.
+- No duplicated ideas, grammar patterns, or contexts.
+
+`.trim();
   }
 
   buildQuickQuizPrompt(selectedTopics, distribution) {
-    return `Bạn là một giáo viên tiếng Anh với 10 năm kinh nghiệm.
+    return `You are an expert English teacher with 10 years of experience designing professional multiple-choice exercises for English learners.
 
-Nhiệm vụ:
-- Tạo 10 câu hỏi trắc nghiệm 4 đáp án (1 đúng)
-- Ngôn ngữ: Tiếng Anh
-- Chủ đề tập trung: ${selectedTopics.join(', ')}
-- Phân bổ: 
-  + ${distribution.vocabulary} câu về từ vựng và cụm từ thông dụng
-  + ${distribution.grammar} câu về ngữ pháp thực tế
-  + ${distribution.communication} câu về cách diễn đạt và giao tiếp
+TASK:
+Generate 10 multiple-choice questions (4 options each, 1 correct answer).
 
-YÊU CẦU CHUNG:
-- Đáp án và giải thích phải ngắn gọn (<100 từ) và bằng tiếng Việt
-- Các câu hỏi PHẢI đa dạng về hình thức
-- Thứ tự câu hỏi được sắp xếp ngẫu nhiên, không theo phân bổ đã cho
-- TẤT CẢ các giải thích PHẢI LUÔN LUÔN bằng tiếng Việt, NGAY CẢ KHI câu hỏi và đáp án bằng ngôn ngữ khác
-- Câu hỏi phải đa dạng và thực tế, không trùng lặp nội dung các câu
-- Tập trung vào kiến thức thường dùng trong giao tiếp hàng ngày
-- Với mỗi câu hỏi, trích xuất các từ mới CHỈ từ nội dung câu hỏi (KHÔNG lấy từ các đáp án), bao gồm:
-  + Từ vựng quan trọng hoặc khó
-  + Cụm từ thông dụng
-  + Thuật ngữ chuyên ngành (nếu có)
+CONTEXT SETTINGS:
+- Language: English
+- Focus topics: ${selectedTopics.join(', ')}
+- Question distribution:
+  + ${distribution.vocabulary} questions on vocabulary and common expressions
+  + ${distribution.grammar} questions on practical grammar
+  + ${distribution.communication} questions on communication and phrasing
+- Target audience: English learners seeking real-life, conversational improvement
 
-YÊU CẦU BẮT BUỘC: 
-   - Mỗi câu hỏi PHẢI được kiểm tra ngữ pháp và logic trước khi xuất
-   - Đảm bảo không có câu hỏi mơ hồ/nhiều nghĩa
-   - Với câu điền khuyết: Xác định rõ chủ ngữ có thể thực hiện hành động không
-   
-TIÊU CHÍ NGỮ PHÁP:
-   - Danh từ vô tri + động từ → bắt buộc dùng bị động
-   - Thì động từ phải khớp với trạng từ thời gian
-   - Động từ khuyết thiếu phải phù hợp với chủ ngữ
+REQUIREMENTS:
+1. Each question must be grammatically correct, unambiguous, and contextually sound.
+2. Use **diverse question types** — including fill-in-the-blank, sentence completion, situational choice, synonym/antonym, and conversational response.
+3. Ensure **no repetition** in question structure, topic, or content.
+4. Randomize question order (do not group by category).
+5. Use **natural, real-life English** — avoid overly academic or unnatural phrasing.
+6. All questions must focus on **language used in daily conversation or practical scenarios**.
 
-QUAN TRỌNG: CHỈ TRẢ VỀ JSON THUẦN KHÔNG CÓ MARKDOWN, KHÔNG CÓ KÝ TỰ ĐẶC BIỆT, theo định dạng sau:
+EXPLANATION RULES:
+- The explanation must **always** be in Vietnamese.
+- The explanation should be structured and include:
+  1. **Why the correct answer is right**: Clear reasoning with specific grammar/vocabulary rules or contextual logic
+  2. **Why other options are wrong** (when applicable): Brief explanation of common mistakes or misconceptions
+  3. **Related rule or concept**: Relevant grammar rule, collocation, or usage pattern
+  4. **Practical note**: How to apply this in real-life communication (if relevant)
+- Keep explanations **concise (80-120 words)**, clear, and educational.
+- Focus on helping learners understand the concept, not just memorize the answer.
+- Use examples from the question context when explaining.
+
+NEW WORDS:
+- Extract **3–5 important or useful words or phrases** from the **question text only** (not from the options).
+- Include:
+  - Key or challenging vocabulary
+  - Common phrases or idioms
+  - Technical or topic-related terms (if relevant)
+- Each new word must have:
+  - Accurate **phonetic transcription (IPA preferred)**
+  - **Vietnamese meaning**
+- Prioritize **variety**: include different word types (verbs, adjectives, nouns, idioms).
+
+GRAMMAR & LOGIC CHECKLIST:
+- Inanimate noun + verb → use passive voice.
+- Verb tense must align with time expressions.
+- Modal verbs must match the subject.
+- Ensure subject–verb agreement and logical consistency.
+- Avoid questions that can have more than one valid answer.
+
+OUTPUT FORMAT:
+Return **pure JSON only** (UTF-8, no markdown, comments, or extra text).
 
 {
   "questions": [
     {
-      "id": số thứ tự (1, 2, 3...),
-      "question": "nội dung câu hỏi",
-      "options": ["đáp án A", "đáp án B", "đáp án C", "đáp án D"],
-      "correct_answer": chỉ số của đáp án đúng (0-3, dạng số không phải chuỗi),
-      "explanation": "giải thích ngắn gọn",
+      "id": 1,
+      "question": "Question text",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correct_answer": 0,
+      "explanation": "Detailed explanation in Vietnamese covering why the answer is correct, why other options are wrong, related rules/concepts, and practical usage notes",
       "new_words": [
         {
-          "word": "từ hoặc cụm từ mới",
-          "pronunciation": "phiên âm",
-          "meaning": "nghĩa tiếng Việt"
+          "word": "new or key term",
+          "pronunciation": "phonetic transcription",
+          "meaning": "Vietnamese meaning"
         }
       ]
     }
   ]
-}`.trim();
+}
+
+IMPORTANT:
+- Only output valid JSON (UTF-8, no quotes escaping or markdown).
+- Each question must pass grammar and logic validation before output.
+- No duplicated ideas, grammar patterns, or contexts.
+- Maintain natural, conversational tone in all question texts.
+`.trim();
   }
 
   generateRandomDistribution() {
