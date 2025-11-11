@@ -73,15 +73,16 @@ REQUIREMENTS:
 5. Include real-life or practical contexts whenever possible.
 
 EXPLANATION RULES:
-- The explanation must **always** be in Vietnamese.
-- The explanation should be structured and include:
-  1. **Why the correct answer is right**: Clear reasoning with specific grammar/vocabulary rules or contextual logic
-  2. **Why other options are wrong** (when applicable): Brief explanation of common mistakes or misconceptions
-  3. **Related rule or concept**: Relevant grammar rule, collocation, or usage pattern
-  4. **Practical note**: How to apply this in real-life communication (if relevant)
-- Keep explanations **concise (80-120 words)**, clear, and educational.
+- The explanation must be an **object with separate fields** (not a single string).
+- Each field must be in Vietnamese and include:
+  - **summary**: The main concept with definition and why the answer is correct (combine concept, definition, and reasoning in one field)
+  - **formula**: The grammar formula or pattern (if applicable, e.g., "S + V + O", "have/has + past participle", or "N/A" if not applicable)
+  - **note**: Important note tailored to the category:
+    * For **Grammar**: Focus on common grammar mistakes, exceptions to rules, or confusing grammar points
+    * For **Vocabulary**: Focus on word usage, collocations, synonyms/antonyms, or contextual nuances
+    * For **Communication**: Focus on tone, formality level, cultural context, or appropriate situations to use
+- Each field should be **concise (30-50 words for summary, 15-25 words for note)**, clear, and educational.
 - Focus on helping learners understand the concept, not just memorize the answer.
-- Use examples from the question context when explaining.
 
 NEW WORDS:
 - Extract **3–5 new or useful words or phrases** from the *question text only* (not from the options).
@@ -103,6 +104,10 @@ GRAMMAR CHECKLIST:
 OUTPUT FORMAT:
 Return **pure JSON only** (no markdown, no explanations, no additional text).
 
+**CRITICAL**: The "explanation" field MUST be an object with 3 nested fields (summary, formula, note).
+DO NOT return summary, formula, note as separate top-level fields.
+
+Correct structure:
 {
   "questions": [
     {
@@ -110,7 +115,11 @@ Return **pure JSON only** (no markdown, no explanations, no additional text).
       "question": "Question text",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_answer": 0,
-      "explanation": "Detailed explanation in Vietnamese covering why the answer is correct, why other options are wrong, related rules/concepts, and practical usage notes",
+      "explanation": {
+        "summary": "The main concept with definition and why the answer is correct (Vietnamese)",
+        "formula": "Grammar formula or pattern (e.g., 'S + V + O' or 'N/A')",
+        "note": "Important note or common mistake to avoid (Vietnamese)"
+      },
       "new_words": [
         {
           "word": "new or key term",
@@ -126,6 +135,9 @@ IMPORTANT:
 - Only output valid JSON (UTF-8, no markdown or quotes escaping).
 - Every question must pass grammar and logic validation before output.
 - No duplicated ideas, grammar patterns, or contexts.
+- **CRITICAL**: "explanation" MUST be an object containing 3 fields: {summary, formula, note}.
+- The formula field should contain grammar patterns when applicable, or "N/A" if not relevant to the question.
+- The note field must be tailored to the category (${category}) to provide relevant learning insights.
 
 `.trim();
   }
@@ -154,15 +166,16 @@ REQUIREMENTS:
 6. All questions must focus on **language used in daily conversation or practical scenarios**.
 
 EXPLANATION RULES:
-- The explanation must **always** be in Vietnamese.
-- The explanation should be structured and include:
-  1. **Why the correct answer is right**: Clear reasoning with specific grammar/vocabulary rules or contextual logic
-  2. **Why other options are wrong** (when applicable): Brief explanation of common mistakes or misconceptions
-  3. **Related rule or concept**: Relevant grammar rule, collocation, or usage pattern
-  4. **Practical note**: How to apply this in real-life communication (if relevant)
-- Keep explanations **concise (80-120 words)**, clear, and educational.
+- The explanation must be an **object with separate fields** (not a single string).
+- Each field must be in Vietnamese and include:
+  - **summary**: The main concept with definition and why the answer is correct (combine concept, definition, and reasoning in one field)
+  - **formula**: The grammar formula or pattern (if applicable, e.g., "S + V + O", "have/has + past participle", or "N/A" if not applicable)
+  - **note**: Important note tailored to the question type:
+    * For **Grammar questions**: Focus on common grammar mistakes, exceptions to rules, or confusing grammar points
+    * For **Vocabulary questions**: Focus on word usage, collocations, synonyms/antonyms, or contextual nuances
+    * For **Communication questions**: Focus on tone, formality level, cultural context, or appropriate situations to use
+- Each field should be **concise (30-50 words for summary, 15-25 words for note)**, clear, and educational.
 - Focus on helping learners understand the concept, not just memorize the answer.
-- Use examples from the question context when explaining.
 
 NEW WORDS:
 - Extract **3–5 important or useful words or phrases** from the **question text only** (not from the options).
@@ -185,6 +198,10 @@ GRAMMAR & LOGIC CHECKLIST:
 OUTPUT FORMAT:
 Return **pure JSON only** (UTF-8, no markdown, comments, or extra text).
 
+**CRITICAL**: The "explanation" field MUST be an object with 3 nested fields (summary, formula, note).
+DO NOT return summary, formula, note as separate top-level fields.
+
+Correct structure:
 {
   "questions": [
     {
@@ -192,7 +209,11 @@ Return **pure JSON only** (UTF-8, no markdown, comments, or extra text).
       "question": "Question text",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_answer": 0,
-      "explanation": "Detailed explanation in Vietnamese covering why the answer is correct, why other options are wrong, related rules/concepts, and practical usage notes",
+      "explanation": {
+        "summary": "The main concept with definition and why the answer is correct (Vietnamese)",
+        "formula": "Grammar formula or pattern (e.g., 'S + V + O' or 'N/A')",
+        "note": "Important note or common mistake to avoid (Vietnamese)"
+      },
       "new_words": [
         {
           "word": "new or key term",
@@ -209,6 +230,9 @@ IMPORTANT:
 - Each question must pass grammar and logic validation before output.
 - No duplicated ideas, grammar patterns, or contexts.
 - Maintain natural, conversational tone in all question texts.
+- **CRITICAL**: "explanation" MUST be an object containing 3 fields: {summary, formula, note}.
+- The formula field should contain grammar patterns when applicable, or "N/A" if not relevant to the question.
+- The note field must be tailored to the question type (Grammar/Vocabulary/Communication) to provide relevant learning insights.
 `.trim();
   }
 
