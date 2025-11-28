@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const chatRoutes = require('./routes/chatRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 const scrambleRoutes = require('./routes/scrambleRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -58,6 +59,7 @@ app.get('/', (req, res) => {
 app.use('/api/chat', chatRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/scramble', scrambleRoutes);
+app.use('/api/notes', noteRoutes);
 
 // 404 handler
 app.use(notFound);
