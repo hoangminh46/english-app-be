@@ -4,11 +4,17 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session');
+
+// Import Passport config
+require('./config/passport');
 
 // Import routes
 const chatRoutes = require('./routes/chatRoutes');
 const quizRoutes = require('./routes/quizRoutes');
 const scrambleRoutes = require('./routes/scrambleRoutes');
+const authRoutes = require('./routes/authRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -45,6 +51,25 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Session middleware (cần cho Passport OAuth flow)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
+
+// Passport middleware
+const passport = require('passport');
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
@@ -55,6 +80,8 @@ app.get('/', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/notes', noteRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/scramble', scrambleRoutes);

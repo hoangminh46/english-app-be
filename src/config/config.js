@@ -8,8 +8,11 @@ const config = {
   geminiApiKey: process.env.GEMINI_API_KEY,
   openaiApiKey: process.env.OPENAI_API_KEY,
   
-  // Frontend URL
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  // Frontend URL - tự động detect dựa trên NODE_ENV
+  frontendUrl: process.env.FRONTEND_URL || 
+    (process.env.NODE_ENV === 'production' 
+      ? 'https://mine-english.vercel.app' 
+      : 'http://localhost:3000'),
   
   // Database
   mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/english_app',
@@ -26,6 +29,16 @@ const config = {
   corsOrigins: process.env.CORS_ORIGINS ? 
     process.env.CORS_ORIGINS.split(',') : 
     ['http://localhost:3000'],
+  
+  // Google OAuth2
+  googleClientID: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  // Callback URL - nếu có trong env thì dùng, không thì tự động tạo từ base URL
+  googleCallbackURL: process.env.GOOGLE_CALLBACK_URL || 
+    (process.env.BASE_URL 
+      ? `${process.env.BASE_URL}/api/auth/google/callback`
+      : 'http://localhost:5000/api/auth/google/callback'),
+  baseUrl: process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`,
 };
 
 module.exports = config;
