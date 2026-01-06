@@ -137,6 +137,48 @@ const updateAudience = async (req, res) => {
 };
 
 /**
+ * Cập nhật language của user
+ */
+const updateLanguage = async (req, res) => {
+  try {
+    const { language } = req.body;
+    
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User không tồn tại',
+      });
+    }
+
+    // Cập nhật language
+    user.language = language;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Cập nhật language thành công',
+      data: user.toJSON(),
+    });
+  } catch (error) {
+    console.error('Error in updateLanguage:', error);
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Dữ liệu không hợp lệ',
+        errors: Object.values(error.errors).map(err => err.message),
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi cập nhật language',
+    });
+  }
+};
+
+/**
  * Cập nhật profile của user
  */
 const updateProfile = async (req, res) => {
@@ -187,6 +229,7 @@ module.exports = {
   logout,
   verifyToken,
   updateAudience,
+  updateLanguage,
   updateProfile,
 };
 

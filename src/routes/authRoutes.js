@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
-const { updateAudienceSchema, updateProfileSchema } = require('../validators/userValidator');
+const { updateAudienceSchema, updateLanguageSchema, updateProfileSchema } = require('../validators/userValidator');
 
 /**
  * Route để bắt đầu quá trình đăng nhập Google OAuth
@@ -58,6 +58,11 @@ router.post('/logout', authenticate, authController.logout);
  * Route cập nhật audience của user
  */
 router.put('/audience', authenticate, validate(updateAudienceSchema), authController.updateAudience);
+
+/**
+ * Route cập nhật language của user
+ */
+router.put('/language', authenticate, validate(updateLanguageSchema), authController.updateLanguage);
 
 /**
  * Route cập nhật profile của user

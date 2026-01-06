@@ -11,6 +11,17 @@ const updateAudienceSchema = Joi.object({
     })
 });
 
+// Schema validation cho cập nhật language
+const updateLanguageSchema = Joi.object({
+  language: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'string.empty': 'Language không được để trống',
+      'any.required': 'Language là bắt buộc'
+    })
+});
+
 // Schema validation cho cập nhật profile
 const updateProfileSchema = Joi.object({
   firstName: Joi.string()
@@ -29,6 +40,7 @@ const updateProfileSchema = Joi.object({
 
 module.exports = {
   updateAudienceSchema,
+  updateLanguageSchema,
   updateProfileSchema,
 };
 

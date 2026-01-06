@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+    language: {
+      type: String,
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
@@ -56,6 +61,7 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ googleId: 1 });
 userSchema.index({ email: 1 });
 userSchema.index({ audience: 1 });
+userSchema.index({ language: 1 });
 
 // Method để lấy thông tin user (không bao gồm sensitive data)
 userSchema.methods.toJSON = function () {
@@ -68,6 +74,7 @@ userSchema.methods.toJSON = function () {
     firstName: userObject.firstName,
     lastName: userObject.lastName,
     audience: userObject.audience,
+    language: userObject.language,
     createdAt: userObject.createdAt,
     updatedAt: userObject.updatedAt,
   };
