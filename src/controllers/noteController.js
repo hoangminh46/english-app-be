@@ -300,7 +300,8 @@ const deleteNoteItem = async (req, res) => {
       });
     }
     
-    item.remove();
+    // Sử dụng pull() thay vì remove() cho Mongoose 6+
+    note[category].pull(itemId);
     await note.save();
     
     res.json({
