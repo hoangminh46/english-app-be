@@ -23,7 +23,7 @@ class QuizService {
       category
     });
 
-    return await this.callGeminiAPI(prompt);
+    return await this.generateWithFallback(prompt);
   }
 
   async generateQuickQuiz() {
@@ -46,7 +46,7 @@ class QuizService {
     const distribution = this.generateRandomDistribution();
 
     const prompt = this.buildQuickQuizPrompt(selectedTopics, distribution);
-    return await this.callGeminiAPI(prompt);
+    return await this.generateWithFallback(prompt);
   }
 
   buildCustomQuizPrompt(params) {
@@ -253,53 +253,106 @@ IMPORTANT:
     return { vocabulary, grammar, communication };
   }
 
-  async callGeminiAPI(prompt) {
+  async generateWithFallback(prompt) {
+    try {
+      // Ưu tiên dùng Groq
+      return await this.callGroqAPI(prompt);
+    } catch (error) {
+      // Nếu lỗi 429 (Rate Limit) hoặc lỗi kết nối, chuyển sang OpenRouter
+      if (error.message.includes('429') || error.message.includes('Rate limit')) {
+        console.warn('Groq Rate Limit reached. Falling back to OpenRouter...');
+        return await this.callOpenRouterAPI(prompt);
+      }
+      throw error;
+    }
+  }
+
+  async callGroqAPI(prompt) {
     try {
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${config.geminiApiKey}`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.9,
-            topK: 50,
-            topP: 0.97,
-            maxOutputTokens: 8192,
-          }
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that generates English quiz questions in JSON format.' },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: 4096,
         },
-        { headers: { 'Content-Type': 'application/json' } }
+        {
+          headers: {
+            'Authorization': `Bearer ${config.groqApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
       
-      let aiResponse = '';
-      if (response.data?.candidates?.[0]?.content?.parts) {
-        aiResponse = response.data.candidates[0].content.parts[0].text;
-        
-        // Remove markdown if present
-        aiResponse = aiResponse.replace(/```json|```/g, '').trim();
-        
-        // Clean the response
-        aiResponse = aiResponse.trim();
-        aiResponse = aiResponse.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '');
-        
-        // Parse JSON response
-        const jsonResponse = JSON.parse(aiResponse);
-        
-        // Ensure correct_answer is a number, not a string
-        if (jsonResponse.questions) {
-          jsonResponse.questions.forEach(q => {
-            if (typeof q.correct_answer === 'string') {
-              q.correct_answer = parseInt(q.correct_answer);
-            }
-          });
-        }
-        
-        return jsonResponse;
-      } else {
-        throw new Error('Không nhận được phản hồi hợp lệ từ AI');
-      }
+      const content = response.data.choices[0]?.message?.content;
+      return this.processAIResponse(content);
     } catch (error) {
-      console.error('Quiz service error:', error.response?.data || error.message);
-      throw new Error('Lỗi khi tạo câu hỏi trắc nghiệm');
+      console.error('Groq Error:', error.response?.data || error.message);
+      throw error;
     }
+  }
+
+  async callOpenRouterAPI(prompt) {
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'google/gemini-2.0-flash-lite-preview-02-05:free', // Model miễn phí/rẻ trên OpenRouter
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that generates English quiz questions in JSON format.' },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: 4096,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${config.openRouterApiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': config.frontendUrl, // OpenRouter requires this for rankings
+            'X-Title': 'English Learning App'
+          }
+        }
+      );
+      
+      const content = response.data.choices[0]?.message?.content;
+      return this.processAIResponse(content);
+    } catch (error) {
+      console.error('OpenRouter Error:', error.response?.data || error.message);
+      throw new Error('Cả Groq và OpenRouter đều không khả dụng hiện tại.');
+    }
+  }
+
+  processAIResponse(content) {
+    if (!content) {
+      throw new Error('Không nhận được phản hồi từ AI');
+    }
+
+    let jsonResponse;
+    try {
+      // Handle cases where AI might wrap JSON in markdown blocks
+      const cleanedContent = content.replace(/```json|```/g, '').trim();
+      jsonResponse = JSON.parse(cleanedContent);
+    } catch (e) {
+      console.error('JSON Parse Error:', e.message);
+      throw new Error('Phản hồi từ AI không đúng định dạng JSON');
+    }
+    
+    if (jsonResponse.questions) {
+      jsonResponse.questions.forEach(q => {
+        if (typeof q.correct_answer === 'string') {
+          q.correct_answer = parseInt(q.correct_answer);
+        }
+      });
+    }
+    
+    return jsonResponse;
   }
 }
 
