@@ -300,7 +300,7 @@ const deleteNoteItem = async (req, res) => {
       });
     }
     
-    item.remove();
+    item.deleteOne();
     await note.save();
     
     res.json({

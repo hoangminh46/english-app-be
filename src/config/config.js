@@ -7,6 +7,8 @@ const config = {
   // API Keys
   geminiApiKey: process.env.GEMINI_API_KEY,
   openaiApiKey: process.env.OPENAI_API_KEY,
+  groqApiKey: process.env.GROQ_API_KEY,
+  openRouterApiKey: process.env.OPENROUTER_API_KEY,
   
   // Frontend URL - tự động detect dựa trên NODE_ENV
   frontendUrl: process.env.FRONTEND_URL || 
