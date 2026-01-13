@@ -1,5 +1,6 @@
 const axios = require('axios');
 const config = require('../config/config');
+const aiService = require('./aiService');
 
 class QuizService {
   async generateCustomQuiz(params) {
@@ -23,7 +24,7 @@ class QuizService {
       category
     });
 
-    return await this.generateWithFallback(prompt);
+    return await this.generateWithFallback(prompt, quantity);
   }
 
   async generateQuickQuiz() {
@@ -46,194 +47,145 @@ class QuizService {
     const distribution = this.generateRandomDistribution();
 
     const prompt = this.buildQuickQuizPrompt(selectedTopics, distribution);
-    return await this.generateWithFallback(prompt);
+    return await this.generateWithFallback(prompt, 10);
   }
 
   buildCustomQuizPrompt(params) {
-    const { language, quantity, mainTopic, subtopics, difficulty, audience, category } = params;
+    const { language, quantity, mainTopic, subtopics, difficulty, audience } = params;
     
-    return `You are an expert ${language} teacher with 10 years of experience creating professional multiple-choice questions.
+    // Define difficulty constraints
+    const diff = (difficulty || '').toLowerCase();
+    let difficultyGuidelines = '';
+    let explanationLength = '40-60';
+    let persona = `expert ${language} teacher`;
+
+    if (diff.includes('beginner') || diff.includes('cơ bản')) {
+      explanationLength = '30-50';
+      difficultyGuidelines = `
+      - Level: CEFR A1-A2.
+      - Vocabulary: High-frequency, everyday words.
+      - Grammar: Simple tenses (present, past, future), basic sentence structures.
+      - Tone: Encouraging, ultra-clear. Avoid complex idioms or academic jargon.`;
+    } else if (diff.includes('intermediate') || diff.includes('trung cấp')) {
+      explanationLength = '40-60';
+      difficultyGuidelines = `
+      - Level: CEFR B1-B2.
+      - Vocabulary: Broad range of topics, common idioms, and work/social vocabulary.
+      - Grammar: Compound/complex sentences, perfect tenses, conditionals, passive voice.
+      - Tone: Natural and conversational.`;
+    } else {
+      // Advanced
+      explanationLength = '50-70';
+      persona = `world-class ${language} Professor specializing in academic testing (IELTS/TOEFL/GRE)`;
+      difficultyGuidelines = `
+      - Level: CEFR C1-C2.
+      - Vocabulary: Academic, specialized, and low-frequency sophisticated words.
+      - Grammar: Advanced structures (inversion, subjunctive, complex clauses, nuances).
+      - Tone: Professional, academic, and highly sophisticated.`;
+    }
+    
+    return `You are a ${persona}.
 
 TASK:
-Generate ${quantity} multiple-choice questions (4 options each, 1 correct answer).
+Generate EXACTLY ${quantity} MCQs based on the following:
 
-CONTEXT SETTINGS:
+CORE SPECIFICATIONS:
 - Language: ${language}
-- Category: ${category}
-- Main topic: ${mainTopic}
-- Subtopics: ${subtopics.join(', ')}
-- Difficulty: ${difficulty}
-- Target audience: ${audience}
+- Topic: ${mainTopic} (${subtopics.join(', ')})
+- Difficulty Level: ${difficulty}
+- Audience: ${audience}
 
-REQUIREMENTS:
-1. Each question must be grammatically correct, unambiguous, and logically sound.
-2. Use diverse question types (fill-in-the-blank, situational, synonym/antonym, grammar, collocation, context-based, etc.).
-3. Ensure **no repetition** of question structure, examples, or content.
-4. Randomize question order and vary the phrasing and focus of each question.
-5. Include real-life or practical contexts whenever possible.
+DIFFICULTY RULES (MANDATORY):
+${difficultyGuidelines}
 
-EXPLANATION RULES:
-- The explanation must be an **object with separate fields** (not a single string).
-- Each field must be in Vietnamese and include:
-  - **summary**: The main concept with definition and why the answer is correct (combine concept, definition, and reasoning in one field)
-  - **formula**: The grammar formula or pattern (if applicable, e.g., "S + V + O", "have/has + past participle", or "N/A" if not applicable)
-  - **note**: Important note tailored to the category:
-    * For **Grammar**: Focus on common grammar mistakes, exceptions to rules, or confusing grammar points
-    * For **Vocabulary**: Focus on word usage, collocations, synonyms/antonyms, or contextual nuances
-    * For **Communication**: Focus on tone, formality level, cultural context, or appropriate situations to use
-- Each field should be **concise (30-50 words for summary, 15-25 words for note)**, clear, and educational.
-- Focus on helping learners understand the concept, not just memorize the answer.
+PEDAGOGICAL REQUIREMENTS:
+1. QUALITY: Questions must be contextually rich and grammatically perfect.
+2. **UNIQUE ANSWER (CRITICAL)**: There must be ONLY ONE logically and grammatically correct answer. Avoid ambiguous questions where multiple options could fit (e.g., if the options are 4 different locations, the sentence MUST include a hint like "I need to buy medicine" to point to "pharmacy").
+3. NO REDUNDANCY: The correct answer MUST NOT already exist in the question sentence.
+4. NO INSTRUCTIONS: Only content in the "question" field.
+5. NO CLUES: No base forms in parentheses.
+6. OPTIONS: NO labels like "A.", "B.". Just clean text.
+7. NEW WORDS: Extract only meaningful vocabulary. Avoid ultra-basic pronouns or articles.
 
-NEW WORDS:
-- Extract **3–5 new or useful words or phrases** from the *question text only* (not from the options).
-- Prioritize diversity: include a mix of **vocabulary types** (verbs, adjectives, idioms, collocations, or topic-related terms).
-- For each word or phrase, include:
-  - Accurate **phonetic transcription** (IPA preferred)
-  - **Meaning in Vietnamese** (clear and natural)
-- Choose words that are:
-  - Commonly used in real-life English
-  - Relevant to the topic or context of the question
-  - Useful for learners’ vocabulary building
+DETAILED CONTENT (MANDATORY: VIETNAMESE):
+- **LANGUAGE RULE**: All content in "explanation", "formula", "note", and "meaning" fields MUST BE WRITTEN IN VIETNAMESE. Failure to do so is a violation of the task.
+- EXPLANATION: Clear, deeply educational, professional Vietnamese. Length: ~${explanationLength} words.
+- FORMULA: Relevant grammar pattern (in Vietnamese) or "N/A".
+- NOTE: High-level tips, common pitfalls, or cultural nuances in Vietnamese.
+- NEW WORDS: Extract 3-5 words ONLY from the "question" text. **CRITICAL: DO NOT include words from the "options" or "correct_answer".** "meaning" field MUST be in Vietnamese.
 
-GRAMMAR CHECKLIST:
-- Inanimate subject + verb → use passive voice.
-- Verb tense must match time expressions.
-- Modal verbs must agree with the subject.
-- Ensure subject-verb agreement and logical consistency.
+OUTPUT FORMAT (STRICT):
+1. **PURE JSON ONLY**: Do not include any text before or after the JSON block.
+2. **NO MARKDOWN**: Do not wrap the response in \`\`\`json blocks.
+3. **VALIDATION**: Ensure all quotes are balanced, commas are correctly placed, and the structure matches the example exactly.
 
-OUTPUT FORMAT:
-Return **pure JSON only** (no markdown, no explanations, no additional text).
-
-**CRITICAL**: The "explanation" field MUST be an object with 3 nested fields (summary, formula, note).
-DO NOT return summary, formula, note as separate top-level fields.
-
-Correct structure:
+JSON Schema to follow:
 {
   "questions": [
     {
       "id": 1,
-      "question": "Question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "question": "...",
+      "options": ["...", "...", "...", "..."],
       "correct_answer": 0,
-      "explanation": {
-        "summary": "The main concept with definition and why the answer is correct (Vietnamese)",
-        "formula": "Grammar formula or pattern (e.g., 'S + V + O' or 'N/A')",
-        "note": "Important note or common mistake to avoid (Vietnamese)"
+      "explanation": { 
+        "summary": "Nội dung giải thích...", 
+        "formula": "Cấu trúc...", 
+        "note": "Lưu ý..." 
       },
       "new_words": [
-        {
-          "word": "new or key term",
-          "pronunciation": "phonetic transcription",
-          "meaning": "Vietnamese meaning"
-        }
+        { "word": "...", "pronunciation": "/.../", "meaning": "VN" }
       ]
     }
   ]
 }
-
-IMPORTANT:
-- Only output valid JSON (UTF-8, no markdown or quotes escaping).
-- Every question must pass grammar and logic validation before output.
-- No duplicated ideas, grammar patterns, or contexts.
-- **CRITICAL**: "explanation" MUST be an object containing 3 fields: {summary, formula, note}.
-- The formula field should contain grammar patterns when applicable, or "N/A" if not relevant to the question.
-- The note field must be tailored to the category (${category}) to provide relevant learning insights.
-
 `.trim();
   }
 
   buildQuickQuizPrompt(selectedTopics, distribution) {
-    return `You are an expert English teacher with 10 years of experience designing professional multiple-choice exercises for English learners.
+    return `You are an expert English teacher specializing in practical, real-life communication.
 
 TASK:
-Generate 10 multiple-choice questions (4 options each, 1 correct answer).
+Generate EXACTLY 10 professional MCQs based on the following:
 
-CONTEXT SETTINGS:
-- Language: English
-- Focus topics: ${selectedTopics.join(', ')}
-- Question distribution:
-  + ${distribution.vocabulary} questions on vocabulary and common expressions
-  + ${distribution.grammar} questions on practical grammar
-  + ${distribution.communication} questions on communication and phrasing
-- Target audience: English learners seeking real-life, conversational improvement
+CORE SPECIFICATIONS:
+- Topics: ${selectedTopics.join(', ')}
+- Distribution: Vocab ${distribution.vocabulary}, Grammar ${distribution.grammar}, Communication ${distribution.communication}
+- Audience: English learners seeking real-life conversation skills.
 
-REQUIREMENTS:
-1. Each question must be grammatically correct, unambiguous, and contextually sound.
-2. Use **diverse question types** — including fill-in-the-blank, sentence completion, situational choice, synonym/antonym, and conversational response.
-3. Ensure **no repetition** in question structure, topic, or content.
-4. Randomize question order (do not group by category).
-5. Use **natural, real-life English** — avoid overly academic or unnatural phrasing.
-6. All questions must focus on **language used in daily conversation or practical scenarios**.
+PEDAGOGICAL REQUIREMENTS:
+1. QUALITY: Questions must be contextually rich and grammatically perfect.
+2. **UNIQUE ANSWER (CRITICAL)**: Ensure ONLY ONE option is correct. If using multiple similar nouns, provide context (e.g., "I'm hungry, where is the ___?" -> restaurant).
+3. NO REDUNDANCY: The correct answer MUST NOT already exist in the sentence.
+4. NO INSTRUCTIONS: Only content in the "question" field.
+5. NO CLUES: No base forms in parentheses.
+6. OPTIONS: NO labels like "A.", "B.". Just clean text.
+7. NEW WORDS: Extract only meaningful vocabulary. Avoid ultra-basic pronouns or articles.
 
-EXPLANATION RULES:
-- The explanation must be an **object with separate fields** (not a single string).
-- Each field must be in Vietnamese and include:
-  - **summary**: The main concept with definition and why the answer is correct (combine concept, definition, and reasoning in one field)
-  - **formula**: The grammar formula or pattern (if applicable, e.g., "S + V + O", "have/has + past participle", or "N/A" if not applicable)
-  - **note**: Important note tailored to the question type:
-    * For **Grammar questions**: Focus on common grammar mistakes, exceptions to rules, or confusing grammar points
-    * For **Vocabulary questions**: Focus on word usage, collocations, synonyms/antonyms, or contextual nuances
-    * For **Communication questions**: Focus on tone, formality level, cultural context, or appropriate situations to use
-- Each field should be **concise (30-50 words for summary, 15-25 words for note)**, clear, and educational.
-- Focus on helping learners understand the concept, not just memorize the answer.
+DETAILED CONTENT (MANDATORY: VIETNAMESE):
+- **LANGUAGE RULE**: All content in "explanation", "formula", "note", and "meaning" fields MUST BE WRITTEN IN VIETNAMESE.
+- EXPLANATION: Clear, educational, and detailed Vietnamese. Length: ~40-60 words.
+- FORMULA: Relevant grammar pattern (in Vietnamese) or "N/A".
+- NOTE: Useful tips, common pitfalls, or cultural nuances in Vietnamese.
+- NEW WORDS: Extract 3-5 words ONLY from the "question" text. **DO NOT include words from "options".**
 
-NEW WORDS:
-- Extract **3–5 important or useful words or phrases** from the **question text only** (not from the options).
-- Include:
-  - Key or challenging vocabulary
-  - Common phrases or idioms
-  - Technical or topic-related terms (if relevant)
-- Each new word must have:
-  - Accurate **phonetic transcription (IPA preferred)**
-  - **Vietnamese meaning**
-- Prioritize **variety**: include different word types (verbs, adjectives, nouns, idioms).
+OUTPUT FORMAT (STRICT):
+1. **PURE JSON ONLY**: No text before/after.
+2. **NO MARKDOWN**: Do not use \`\`\`json blocks.
+3. **VALIDATION**: Ensure the structure matches exactly.
 
-GRAMMAR & LOGIC CHECKLIST:
-- Inanimate noun + verb → use passive voice.
-- Verb tense must align with time expressions.
-- Modal verbs must match the subject.
-- Ensure subject–verb agreement and logical consistency.
-- Avoid questions that can have more than one valid answer.
-
-OUTPUT FORMAT:
-Return **pure JSON only** (UTF-8, no markdown, comments, or extra text).
-
-**CRITICAL**: The "explanation" field MUST be an object with 3 nested fields (summary, formula, note).
-DO NOT return summary, formula, note as separate top-level fields.
-
-Correct structure:
+JSON Schema:
 {
   "questions": [
     {
       "id": 1,
-      "question": "Question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "question": "...",
+      "options": ["...", "...", "...", "..."],
       "correct_answer": 0,
-      "explanation": {
-        "summary": "The main concept with definition and why the answer is correct (Vietnamese)",
-        "formula": "Grammar formula or pattern (e.g., 'S + V + O' or 'N/A')",
-        "note": "Important note or common mistake to avoid (Vietnamese)"
-      },
-      "new_words": [
-        {
-          "word": "new or key term",
-          "pronunciation": "phonetic transcription",
-          "meaning": "Vietnamese meaning"
-        }
-      ]
+      "explanation": { "summary": "...", "formula": "...", "note": "..." },
+      "new_words": [{ "word": "...", "pronunciation": "/.../", "meaning": "VN" }]
     }
   ]
-}
-
-IMPORTANT:
-- Only output valid JSON (UTF-8, no quotes escaping or markdown).
-- Each question must pass grammar and logic validation before output.
-- No duplicated ideas, grammar patterns, or contexts.
-- Maintain natural, conversational tone in all question texts.
-- **CRITICAL**: "explanation" MUST be an object containing 3 fields: {summary, formula, note}.
-- The formula field should contain grammar patterns when applicable, or "N/A" if not relevant to the question.
-- The note field must be tailored to the question type (Grammar/Vocabulary/Communication) to provide relevant learning insights.
-`.trim();
+}`.trim();
   }
 
   generateRandomDistribution() {
@@ -253,106 +205,21 @@ IMPORTANT:
     return { vocabulary, grammar, communication };
   }
 
-  async generateWithFallback(prompt) {
-    try {
-      // Ưu tiên dùng Groq
-      return await this.callGroqAPI(prompt);
-    } catch (error) {
-      // Nếu lỗi 429 (Rate Limit) hoặc lỗi kết nối, chuyển sang OpenRouter
-      if (error.message.includes('429') || error.message.includes('Rate limit')) {
-        console.warn('Groq Rate Limit reached. Falling back to OpenRouter...');
-        return await this.callOpenRouterAPI(prompt);
+  async generateWithFallback(prompt, quantity) {
+    return await aiService.generateWithFallback(prompt, {
+      tag: 'Quiz',
+      systemMessage: 'You are a helpful assistant that generates English quiz questions in JSON format.',
+      serviceSpecificCleaning: (data) => {
+        if (data.questions) {
+          data.questions.forEach(q => {
+            if (typeof q.correct_answer === 'string') {
+              q.correct_answer = parseInt(q.correct_answer);
+            }
+          });
+        }
+        return data;
       }
-      throw error;
-    }
-  }
-
-  async callGroqAPI(prompt) {
-    try {
-      const response = await axios.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant that generates English quiz questions in JSON format.' },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.7,
-          max_tokens: 4096,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${config.groqApiKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      const content = response.data.choices[0]?.message?.content;
-      return this.processAIResponse(content);
-    } catch (error) {
-      console.error('Groq Error:', error.response?.data || error.message);
-      throw error;
-    }
-  }
-
-  async callOpenRouterAPI(prompt) {
-    try {
-      const response = await axios.post(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          model: 'google/gemini-2.0-flash-lite-preview-02-05:free', // Model miễn phí/rẻ trên OpenRouter
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant that generates English quiz questions in JSON format.' },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.7,
-          max_tokens: 4096,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${config.openRouterApiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': config.frontendUrl, // OpenRouter requires this for rankings
-            'X-Title': 'English Learning App'
-          }
-        }
-      );
-      
-      const content = response.data.choices[0]?.message?.content;
-      return this.processAIResponse(content);
-    } catch (error) {
-      console.error('OpenRouter Error:', error.response?.data || error.message);
-      throw new Error('Cả Groq và OpenRouter đều không khả dụng hiện tại.');
-    }
-  }
-
-  processAIResponse(content) {
-    if (!content) {
-      throw new Error('Không nhận được phản hồi từ AI');
-    }
-
-    let jsonResponse;
-    try {
-      // Handle cases where AI might wrap JSON in markdown blocks
-      const cleanedContent = content.replace(/```json|```/g, '').trim();
-      jsonResponse = JSON.parse(cleanedContent);
-    } catch (e) {
-      console.error('JSON Parse Error:', e.message);
-      throw new Error('Phản hồi từ AI không đúng định dạng JSON');
-    }
-    
-    if (jsonResponse.questions) {
-      jsonResponse.questions.forEach(q => {
-        if (typeof q.correct_answer === 'string') {
-          q.correct_answer = parseInt(q.correct_answer);
-        }
-      });
-    }
-    
-    return jsonResponse;
+    });
   }
 }
 

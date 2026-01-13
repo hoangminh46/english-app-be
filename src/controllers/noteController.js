@@ -5,8 +5,9 @@ const Note = require('../models/Note');
  */
 const getNotes = async (req, res) => {
   try {
-    let note = await Note.findOne({ userId: req.userId });
     
+    let note = await Note.findOne({ userId: req.userId });
+
     // Nếu chưa có, tạo mới với 3 mảng rỗng
     if (!note) {
       note = await Note.create({
@@ -16,10 +17,30 @@ const getNotes = async (req, res) => {
         other: []
       });
     }
+
+    // Hàm helper để sort mảng theo updatedAt giảm dần (mới nhất lên đầu)
+    const sortItemsByLatest = (items) => {
+      if (!items || !Array.isArray(items)) return [];
+      return [...items].sort((a, b) => {
+        const aTime = new Date(a.updatedAt || 0).getTime();
+        const bTime = new Date(b.updatedAt || 0).getTime();
+        return bTime - aTime;
+      });
+    };
+
+    const noteData = note.toObject();
     
     res.json({
       success: true,
-      data: note.toJSON(),
+      data: {
+        id: noteData._id,
+        userId: noteData.userId,
+        vocabulary: sortItemsByLatest(noteData.vocabulary),
+        formula: sortItemsByLatest(noteData.formula),
+        other: sortItemsByLatest(noteData.other),
+        createdAt: noteData.createdAt,
+        updatedAt: noteData.updatedAt,
+      },
     });
   } catch (error) {
     console.error('Error in getNotes:', error);
@@ -165,6 +186,19 @@ const createNoteItem = async (req, res) => {
         vocabulary: [],
         formula: [],
         other: []
+      });
+    }
+    
+    // Kiểm tra trùng lặp content (không phân biệt hoa thường, bỏ khoảng trắng thừa)
+    const normalizedContent = content.trim().toLowerCase();
+    const isDuplicate = note[category].some(item => 
+      item.content.trim().toLowerCase() === normalizedContent
+    );
+    
+    if (isDuplicate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ghi chú này đã tồn tại',
       });
     }
     
@@ -321,7 +355,7 @@ const deleteNoteItem = async (req, res) => {
  */
 const searchNotes = async (req, res) => {
   try {
-    const { q, category, isLearned, page = 1, limit = 20 } = req.query;
+    const { q, category, isLearned, page = 1, limit = 20, sortBy = 'updatedAt', sortOrder = 'desc' } = req.query;
     
     if (!q || q.trim() === '') {
       return res.status(400).json({
@@ -373,9 +407,13 @@ const searchNotes = async (req, res) => {
       })));
     });
     
-    // Sort theo updatedAt
+    // Sort
     results.sort((a, b) => {
-      return (b.updatedAt || new Date(0)) - (a.updatedAt || new Date(0));
+      const aValue = a[sortBy] || new Date(0);
+      const bValue = b[sortBy] || new Date(0);
+      return sortOrder === 'asc' 
+        ? (aValue > bValue ? 1 : -1)
+        : (aValue < bValue ? 1 : -1);
     });
     
     // Pagination
