@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "3.3.0"
+  },
+  "project": {
+    "name": "English Learning App Backend",
+    "type": "Backend (Node.js/Express)",
+    "status": "In Development"
+  },
+  "tech_stack": {
+    "backend": {
+      "framework": "Express.js",
+      "runtime": "Node.js",
+      "language": "JavaScript"
+    },
+    "database": {
+      "type": "TBD"
+    },
+    "ai_services": {
+      "groq": "openai/gpt-oss-120b",
+      "openrouter": "meta-llama/llama-3.3-70b-instruct:free",
+      "gemini": "gemini-2.0-flash"
+    }
+  },
+  "api_endpoints": [
+    {
+      "path": "/api/v1/chat/ask",
+      "method": "POST",
+      "description": "Chat with Mine Assistant"
+    },
+    {
+      "path": "/api/v1/quiz/generate",
+      "method": "POST",
+      "description": "Generate Custom Quiz"
+    },
+    {
+      "path": "/api/v1/quiz/quick",
+      "method": "POST",
+      "description": "Generate Quick Quiz"
+    },
+    {
+      "path": "/api/v1/scramble/generate",
+      "method": "POST",
+      "description": "Generate Scramble Game"
+    }
+  ],
+  "features": [
+    {
+      "name": "AI Quiz Generator",
+      "status": "Implemented",
+      "description": "Generates multiple-choice questions using AI."
+    },
+    {
+      "name": "Word Scramble",
+      "status": "Implemented",
+      "description": "Generates word scramble puzzles."
+    },
+    {
+      "name": "Mine Assistant",
+      "status": "Implemented",
+      "description": "Personalized AI chat assistant with context awareness."
+    }
+  ],
+  "knowledge_items": {
+    "conventions": [
+      "Use /api/v1 prefix for all routes.",
+      "Strict cleaning for Quiz/Scramble JSON responses.",
+      "Preserve newlines for Chat Assistant Markdown responses.",
+      "Use 'anh'/'em' honorifics for the assistant.",
+      "Forbid 'bạn' pronoun.",
+      "No tables in chat responses (use lists instead)."
+    ]
+  }
+}

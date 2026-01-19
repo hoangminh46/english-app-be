@@ -1,0 +1,48 @@
+{
+  "updated_at": "2026-01-19T16:42:05+07:00",
+  "working_on": {
+    "feature": "Chat Assistant (Mine)",
+    "task": "Refining response formatting and backward compatibility",
+    "status": "completed",
+    "files": [
+      "src/services/aiService.js",
+      "src/services/chatService.js",
+      "src/controllers/chatController.js"
+    ],
+    "notes": "Restored backward compatibility for Quiz/Scramble max_tokens and response format. Enforced strict formatting rules for Chat Assistant."
+  },
+  "recent_changes": [
+    {
+      "timestamp": "2026-01-19T16:40:00+07:00",
+      "type": "fix",
+      "description": "Restored max_tokens: 8192 for Quiz/Scramble and set max_tokens: 2048 for Chat.",
+      "files": ["src/services/aiService.js", "src/services/chatService.js"]
+    },
+    {
+      "timestamp": "2026-01-19T16:30:00+07:00",
+      "type": "refactor",
+      "description": "Strictly forbade tables and backslash escaping in Chat responses.",
+      "files": ["src/services/chatService.js"]
+    },
+     {
+      "timestamp": "2026-01-19T16:15:00+07:00",
+      "type": "fix",
+      "description": "Fixed 'tag is not defined' error and restored backward compatibility for API response structure.",
+      "files": ["src/services/aiService.js"]
+    }
+  ],
+  "decisions_made": [
+    {
+      "decision": "Use max_tokens: 2048 for Chat, 8192 for others",
+      "reason": "Optimize chat performance while maintaining quiz quality."
+    },
+    {
+      "decision": "Forbid tables in Chat",
+      "reason": "Mobile UI compatibility (380px width)."
+    },
+    {
+      "decision": "API Versioning /api/v1",
+      "reason": "Standardize API routes."
+    }
+  ]
+}
