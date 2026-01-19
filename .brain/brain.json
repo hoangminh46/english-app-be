@@ -1,0 +1,57 @@
+{
+  "meta": { "schema_version": "1.1.0", "awf_version": "3.3.0" },
+  "project": { 
+    "name": "english_app_be", 
+    "type": "Backend API", 
+    "status": "In Development" 
+  },
+  "tech_stack": { 
+    "backend": {
+      "framework": "Express.js",
+      "runtime": "Node.js",
+      "auth": "Passport.js (Google OAuth2.0, JWT)",
+      "validation": "Joi"
+    }, 
+    "database": {
+      "type": "MongoDB",
+      "orm": "Mongoose"
+    },
+    "ai": {
+      "providers": ["OpenAI", "Google Gemini"],
+      "features": ["Quiz generation", "Chat", "Scramble game"]
+    }
+  },
+  "database_schema": { 
+    "tables": [
+      {
+        "name": "User",
+        "description": "User profiles and settings",
+        "fields": ["googleId", "email", "name", "picture", "audience", "language"]
+      },
+      {
+        "name": "Note",
+        "description": "User vocabulary, formulas, and other notes",
+        "fields": ["userId", "vocabulary", "formula", "other"]
+      }
+    ]
+  },
+  "api_endpoints": [
+    "/api/auth",
+    "/api/chat",
+    "/api/notes",
+    "/api/quiz",
+    "/api/scramble"
+  ],
+  "features": [
+    "Google OAuth2 Login",
+    "AI-powered English tutoring chat",
+    "Vocabulary and Grammar note management",
+    "Dynamic Quiz generation",
+    "Word scramble game"
+  ],
+  "knowledge_items": { 
+    "patterns": ["Service-Controller-Route pattern", "AI Falling back between providers"], 
+    "gotchas": ["Handling Unicode characters in AI responses", "Zod/Joi validation sync"], 
+    "conventions": ["CamelCase for variables", "PascalCase for components (client)", "CommonJS on backend"] 
+  }
+}
