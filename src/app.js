@@ -80,11 +80,11 @@ app.get('/', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/notes', noteRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/quiz', quizRoutes);
-app.use('/api/scramble', scrambleRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/notes', noteRoutes);
+app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/quiz', quizRoutes);
+app.use('/api/v1/scramble', scrambleRoutes);
 
 // 404 handler
 app.use(notFound);

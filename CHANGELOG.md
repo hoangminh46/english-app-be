@@ -1,20 +1,24 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-## [1.0.0] - 2026-01-19
+## [2026-01-19]
 ### Added
-- Integrated **OpenAI** and **Google Gemini** for AI features.
-- **Google OAuth2.0** login with Passport.js.
-- **Note API** to manage vocabulary, grammar formulas, and notes.
-- **Quiz API** for dynamic question generation.
-- **Scramble Game API**.
-- **Chat API** with AI English Teacher persona.
-- Automatic AI provider fallback mechanism.
+- **Chat Assistant "Mine":**
+    - New endpoint `/api/v1/chat/ask`.
+    - Context-aware responses (Quiz, Grammar).
+    - "Mine" persona: Friendly, uses "anh-em" honorifics.
+    - Markdown formatting optimization for mobile (No tables).
 
 ### Changed
-- Optimized AI prompts for better accuracy and quantity control.
-- Enhanced note API with sorting and duplicate validation.
+- **API Versioning:** All routes moved to `/api/v1`.
+- **AI Service:**
+    - Refactored `generateWithFallback` to support both JSON mode (Quiz/Scramble) and Markdown mode (Chat).
+    - Restored backward compatibility for `max_tokens` (8192 for legacy, 2048 for Chat).
+    - Restored backward compatibility for response structure (Raw content for legacy, Metadata for Chat).
+- **Chat Service:**
+    - Enforced strict "No Table" rule.
+    - Forbidden backslash escaping in text.
+    - Forbidden "bạn" pronoun.
 
 ### Fixed
-- Handled invisible Unicode characters in AI responses that caused JSON parse errors.
+- Fixed `ReferenceError: tag is not defined` in `aiService.js`.
+- Fixed breaking changes in Quiz/Scramble API responses.

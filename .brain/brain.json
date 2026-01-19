@@ -1,57 +1,75 @@
 {
-  "meta": { "schema_version": "1.1.0", "awf_version": "3.3.0" },
-  "project": { 
-    "name": "english_app_be", 
-    "type": "Backend API", 
-    "status": "In Development" 
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "3.3.0"
   },
-  "tech_stack": { 
+  "project": {
+    "name": "English Learning App Backend",
+    "type": "Backend (Node.js/Express)",
+    "status": "In Development"
+  },
+  "tech_stack": {
     "backend": {
       "framework": "Express.js",
       "runtime": "Node.js",
-      "auth": "Passport.js (Google OAuth2.0, JWT)",
-      "validation": "Joi"
-    }, 
-    "database": {
-      "type": "MongoDB",
-      "orm": "Mongoose"
+      "language": "JavaScript"
     },
-    "ai": {
-      "providers": ["OpenAI", "Google Gemini"],
-      "features": ["Quiz generation", "Chat", "Scramble game"]
+    "database": {
+      "type": "TBD"
+    },
+    "ai_services": {
+      "groq": "openai/gpt-oss-120b",
+      "openrouter": "meta-llama/llama-3.3-70b-instruct:free",
+      "gemini": "gemini-2.0-flash"
     }
   },
-  "database_schema": { 
-    "tables": [
-      {
-        "name": "User",
-        "description": "User profiles and settings",
-        "fields": ["googleId", "email", "name", "picture", "audience", "language"]
-      },
-      {
-        "name": "Note",
-        "description": "User vocabulary, formulas, and other notes",
-        "fields": ["userId", "vocabulary", "formula", "other"]
-      }
-    ]
-  },
   "api_endpoints": [
-    "/api/auth",
-    "/api/chat",
-    "/api/notes",
-    "/api/quiz",
-    "/api/scramble"
+    {
+      "path": "/api/v1/chat/ask",
+      "method": "POST",
+      "description": "Chat with Mine Assistant"
+    },
+    {
+      "path": "/api/v1/quiz/generate",
+      "method": "POST",
+      "description": "Generate Custom Quiz"
+    },
+    {
+      "path": "/api/v1/quiz/quick",
+      "method": "POST",
+      "description": "Generate Quick Quiz"
+    },
+    {
+      "path": "/api/v1/scramble/generate",
+      "method": "POST",
+      "description": "Generate Scramble Game"
+    }
   ],
   "features": [
-    "Google OAuth2 Login",
-    "AI-powered English tutoring chat",
-    "Vocabulary and Grammar note management",
-    "Dynamic Quiz generation",
-    "Word scramble game"
+    {
+      "name": "AI Quiz Generator",
+      "status": "Implemented",
+      "description": "Generates multiple-choice questions using AI."
+    },
+    {
+      "name": "Word Scramble",
+      "status": "Implemented",
+      "description": "Generates word scramble puzzles."
+    },
+    {
+      "name": "Mine Assistant",
+      "status": "Implemented",
+      "description": "Personalized AI chat assistant with context awareness."
+    }
   ],
-  "knowledge_items": { 
-    "patterns": ["Service-Controller-Route pattern", "AI Falling back between providers"], 
-    "gotchas": ["Handling Unicode characters in AI responses", "Zod/Joi validation sync"], 
-    "conventions": ["CamelCase for variables", "PascalCase for components (client)", "CommonJS on backend"] 
+  "knowledge_items": {
+    "conventions": [
+      "Use /api/v1 prefix for all routes.",
+      "Strict cleaning for Quiz/Scramble JSON responses.",
+      "Preserve newlines for Chat Assistant Markdown responses.",
+      "Use 'anh'/'em' honorifics for the assistant.",
+      "Forbid 'bạn' pronoun.",
+      "No tables in chat responses (use lists instead)."
+    ]
   }
 }
