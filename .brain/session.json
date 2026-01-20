@@ -1,17 +1,23 @@
 {
-  "updated_at": "2026-01-19T16:42:05+07:00",
+  "updated_at": "2026-01-20T10:05:00+07:00",
   "working_on": {
-    "feature": "Chat Assistant (Mine)",
-    "task": "Refining response formatting and backward compatibility",
+    "feature": "Authentication",
+    "task": "Fixing Google OAuth redirect URI mismatch",
     "status": "completed",
     "files": [
-      "src/services/aiService.js",
-      "src/services/chatService.js",
-      "src/controllers/chatController.js"
+      ".env",
+      "src/config/config.js",
+      "src/routes/authRoutes.js"
     ],
-    "notes": "Restored backward compatibility for Quiz/Scramble max_tokens and response format. Enforced strict formatting rules for Chat Assistant."
+    "notes": "Synchronized all Google Callback URLs to use /api/v1 prefix. Successfully pushed to bug/fix-oauth-login branch."
   },
   "recent_changes": [
+    {
+      "timestamp": "2026-01-20T10:00:00+07:00",
+      "type": "fix",
+      "description": "Fixed Google OAuth redirect_uri_mismatch by adding /v1 prefix to callback URLs.",
+      "files": [".env", "src/config/config.js", "src/routes/authRoutes.js"]
+    },
     {
       "timestamp": "2026-01-19T16:40:00+07:00",
       "type": "fix",
@@ -23,15 +29,13 @@
       "type": "refactor",
       "description": "Strictly forbade tables and backslash escaping in Chat responses.",
       "files": ["src/services/chatService.js"]
-    },
-     {
-      "timestamp": "2026-01-19T16:15:00+07:00",
-      "type": "fix",
-      "description": "Fixed 'tag is not defined' error and restored backward compatibility for API response structure.",
-      "files": ["src/services/aiService.js"]
     }
   ],
   "decisions_made": [
+    {
+      "decision": "Enforce /api/v1 prefix for all OAuth callbacks",
+      "reason": "Consistency with API versioning and Google Console settings."
+    },
     {
       "decision": "Use max_tokens: 2048 for Chat, 8192 for others",
       "reason": "Optimize chat performance while maintaining quiz quality."
@@ -39,10 +43,6 @@
     {
       "decision": "Forbid tables in Chat",
       "reason": "Mobile UI compatibility (380px width)."
-    },
-    {
-      "decision": "API Versioning /api/v1",
-      "reason": "Standardize API routes."
     }
   ]
 }

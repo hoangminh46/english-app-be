@@ -43,6 +43,16 @@
       "path": "/api/v1/scramble/generate",
       "method": "POST",
       "description": "Generate Scramble Game"
+    },
+    {
+      "path": "/api/v1/auth/google",
+      "method": "GET",
+      "description": "Start Google OAuth Login"
+    },
+    {
+      "path": "/api/v1/auth/google/callback",
+      "method": "GET",
+      "description": "Google OAuth Callback"
     }
   ],
   "features": [

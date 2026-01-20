@@ -38,8 +38,8 @@ const config = {
   // Callback URL - nếu có trong env thì dùng, không thì tự động tạo từ base URL
   googleCallbackURL: process.env.GOOGLE_CALLBACK_URL || 
     (process.env.BASE_URL 
-      ? `${process.env.BASE_URL}/api/auth/google/callback`
-      : 'http://localhost:5000/api/auth/google/callback'),
+      ? `${process.env.BASE_URL}/api/v1/auth/google/callback`
+      : 'http://localhost:5000/api/v1/auth/google/callback'),
   baseUrl: process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`,
 };
 

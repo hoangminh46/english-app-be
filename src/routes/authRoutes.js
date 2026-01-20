@@ -24,7 +24,7 @@ router.get(
   '/google/callback',
   passport.authenticate('google', {
     session: false, // Không sử dụng session, dùng JWT
-    failureRedirect: '/api/auth/google/failure',
+    failureRedirect: '/api/v1/auth/google/failure',
   }),
   authController.googleCallback
 );
