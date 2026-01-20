@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026-01-20]
+### Fixed
+- **Google OAuth Login:** Fixed `redirect_uri_mismatch` error by synchronizing Google Callback URLs with the `/api/v1` versioning convention in `.env`, `config.js`, and `authRoutes.js`.
+
 ## [2026-01-19]
 ### Added
 - **Chat Assistant "Mine":**
